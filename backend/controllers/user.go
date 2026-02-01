@@ -26,6 +26,9 @@ func Register(c *gin.Context){
 	}
 
 	if err := config.DB.Create(&user).Error; err != nil{
-		c.JSON(http.StatusInternalServerError, gin)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "注册失败，用户名可能已存在"})
+		return
 	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "注册成功", "data": user})
 }

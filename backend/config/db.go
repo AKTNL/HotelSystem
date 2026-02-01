@@ -17,4 +17,5 @@ func ConnectDatabase(){
 	}
 
 	DB = database
+	DB.AutoMigrate(&models.User{}, &models.Hotel{}, &models.Room{}, &models.Order{}, &models.OrderGuest{})
 }
