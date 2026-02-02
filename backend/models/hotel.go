@@ -1,7 +1,6 @@
 package models
 
-import "gorm.io/gorm"
-
+// Hotel 酒店表
 type Hotel struct{
 	HotelID  uint   `gorm:"primaryKey;autoIncrement" json:"hotel_id"`
 	Name     string `gorm:"size:100;not null" json:"name"`
@@ -11,6 +10,7 @@ type Hotel struct{
 	Rooms    []Room `gorm:"foreignKey:HotelID" json:"rooms"`
 }
 
+// Room 客房表
 type Room struct{
 	RoomID uint `gorm:"primaryKey;autoIncrement" json:"room_id"`
 	HotelID uint `json:"hotel_id"`

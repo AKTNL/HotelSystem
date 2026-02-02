@@ -6,6 +6,7 @@ import(
 	"github.com/gin-gonic/gin"
 )
 
+// 按城市、区域、酒店等统计预定情况
 func GetBookingStats(c *gin.Context){
 	var results []map[string]interface{}
 
@@ -24,6 +25,7 @@ func GetBookingStats(c *gin.Context){
 	c.JSON(http.StatusOK, results)
 }
 
+// 按入住人画像（年龄、职业等）统计
 func GetGuestAnalysis(c *gin.Context){
 	var analysis []map[string]interface{}
 

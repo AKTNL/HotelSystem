@@ -18,6 +18,7 @@ func SearchHotels(c *gin.Context){
 		Rooms []models.Room `gorm:"foreignKey:HotelID"`
 	}
 
+	// 构造查询：关联查询酒店及其符合价格条件的房型
 	query := config.DB.Preload("Rooms", "price Between ? and ?", minPrice, maxPrice).Model(&models.Hotel{})
 
 	if city != ""{
@@ -31,5 +32,5 @@ func SearchHotels(c *gin.Context){
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "查询失败"})
 		return
 	}
-	c.JSOn(http.StatusOK, results)
+	c.JSON(http.StatusOK, results)
 }

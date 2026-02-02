@@ -4,6 +4,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
+	"hotel-system/models"
 )
 
 var DB *gorm.DB
