@@ -77,5 +77,20 @@ func CancelOrder(c *gin.Context){
 	userID := c.Query("user_id")
 
 	var order models.Order
-	if err := config 
+	if err := config.DB.Where("order_id = ? AND user_id = ?", orderID, userID).First(&order).Error; err != nil{
+		c.JSON(http.StatusNotFound, gin.H{"error": "订单不存在或无权操作"})
+		return
+	} 
+
+	if order.Status != "booked"{
+		c.JSOn(http.StatusBadRequest, gin.H{"error": "当前订单状态不支持退订"})
+		return
+	}
+
+	if err := config.DB.Model(&order).Update("status", "cancelled").Error; err != nil{
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "退订失败"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "退订成功，房间已释放"})
 }
