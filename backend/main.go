@@ -28,6 +28,9 @@ func main(){
 	// 用户模块
 	r.POST("/register", controllers.Register)
 	r.POST("/login", controllers.Login)
+	r.GET("/user/:id", controllers.GetUserProfile)
+	r.PUT("/user/:id", controllers.UpdateUserProfile)
+	r.GET("/orders/user/:user_id", controllers.GetUserOrders)
 
 	// 酒店搜索
 	r.GET("/hotels", controllers.SearchHotels)

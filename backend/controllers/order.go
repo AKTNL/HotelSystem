@@ -85,23 +85,56 @@ func CancelOrder(c *gin.Context){
 	userID := c.Query("user_id")
 
 	var order models.Order
-	// 1. 查找订单并校验所属权
 	if err := config.DB.Where("order_id = ? AND user_id = ?", orderID, userID).First(&order).Error; err != nil{
 		c.JSON(http.StatusNotFound, gin.H{"error": "订单不存在或无权操作"})
 		return
 	} 
 
-	// 2. 校验状态：只有已预订但未入住的订单可以退订
 	if order.Status != "booked"{
 		c.JSON(http.StatusBadRequest, gin.H{"error": "当前订单状态不支持退订"})
 		return
 	}
 
-	// 3. 更新状态为 cancelled
 	if err := config.DB.Model(&order).Update("status", "cancelled").Error; err != nil{
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "退订失败"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "退订成功，房间已释放"})
+}
+
+func GetUserOrders(c *gin.Context){
+	userID := c.Param("user_id")
+	var orders []models.Order
+	
+	if err := config.DB.Where("user_id = ?", userID).
+		Preload("Guests").
+		Order("created_at desc").
+		Find(&orders).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取订单失败"})
+		return
+	}
+
+	var hotelIDs []uint
+	for _, order := range orders {
+		hotelIDs = append(hotelIDs, order.HotelID)
+	}
+
+	var hotels []models.Hotel
+	config.DB.Where("hotel_id IN ?", hotelIDs).Find(&hotels)
+	hotelMap := make(map[uint]models.Hotel)
+	for _, hotel := range hotels {
+		hotelMap[hotel.HotelID] = hotel
+	}
+
+	var result []gin.H
+	for _, order := range orders {
+		hotel := hotelMap[order.HotelID]
+		result = append(result, gin.H{
+			"order": order,
+			"hotel": hotel,
+		})
+	}
+
+	c.JSON(http.StatusOK, result)
 }

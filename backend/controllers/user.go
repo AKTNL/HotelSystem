@@ -11,71 +11,84 @@ import (
 
 func Register(c *gin.Context) {
 	var input struct {
-		Username string `json:"username" binding:"required"`
-		Password string `json:"password" binding:"required"`
-		RealName string `json:"real_name" binding:"required"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+		RealName string `json:"real_name"`
 	}
-
-	// 1. 验证输入格式
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "输入数据不合法"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误"})
 		return
 	}
 
-	//密码加密处理
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "密码加密失败"})
-		return
-	}
-
-	// 2. 创建用户对象
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	user := models.User{
 		Username:     input.Username,
 		PasswordHash: string(hashedPassword),
 		RealName:     input.RealName,
 	}
 
-	// 3. 写入数据库
 	if err := config.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "注册失败，用户名可能已存在"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "注册失败"})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "注册成功", "data": user})
+	c.JSON(http.StatusOK, user)
 }
 
-// Login 用户登录逻辑
 func Login(c *gin.Context) {
 	var input struct {
-		Username string `json:"username" binding:"required"`
-		Password string `json:"password" binding:"required"`
+		Username string `json:"username"`
+		Password string `json:"password"`
 	}
-
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "请输入用户名和密码"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误"})
 		return
 	}
 
 	var user models.User
-	// 1. 根据用户名查询用户
 	if err := config.DB.Where("username = ?", input.Username).First(&user).Error; err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户名或密码错误"})
 		return
 	}
 
-	// 2. 校验密码
-	err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.Password))
-	if err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.Password)); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户名或密码错误"})
 		return
 	}
 
-	// 3. 返回用户信息
-	c.JSON(http.StatusOK, gin.H{
-		"message":  "登录成功",
-		"user_id":  user.UserID,
-		"is_vip":   user.IsVip,
-		"username": user.Username,
-	})
+	c.JSON(http.StatusOK, user)
+}
+
+func GetUserProfile(c *gin.Context) {
+	id := c.Param("id")
+	var user models.User
+	if err := config.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "用户不存在"})
+		return
+	}
+	c.JSON(http.StatusOK, user)
+}
+
+func UpdateUserProfile(c *gin.Context) {
+	id := c.Param("id")
+	var user models.User
+	if err := config.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "用户不存在"})
+		return
+	}
+
+	var input struct {
+		RealName string `json:"real_name"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误"})
+		return
+	}
+
+	user.RealName = input.RealName
+
+	if err := config.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新失败"})
+		return
+	}
+	c.JSON(http.StatusOK, user)
 }

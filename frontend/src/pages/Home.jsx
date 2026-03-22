@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Input, Select, Card, Row, Col, Tag, Spin, Empty, Button, Dropdown, message } from 'antd';
-import { SearchOutlined, EnvironmentOutlined, StarFilled, SortAscendingOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Input, Select, Card, Row, Col, Tag, Spin, Empty, Button, Dropdown, message, Avatar } from 'antd';
+import { SearchOutlined, EnvironmentOutlined, StarFilled, SortAscendingOutlined, UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons';
 import api from '../api';
 import { useNavigate } from 'react-router-dom';
 
@@ -114,6 +114,33 @@ const Home = () => {
         navigate('/login');
     };
 
+    const userMenuItems = [
+        {
+            key: 'profile',
+            icon: <UserOutlined />,
+            label: '个人中心',
+            onClick: () => navigate('/profile')
+        },
+        {
+            key: 'orders',
+            icon: <SettingOutlined />,
+            label: '我的订单',
+            onClick: () => navigate('/my-orders')
+        },
+        { type: 'divider' },
+        {
+            key: 'logout',
+            icon: <LogoutOutlined />,
+            label: '退出登录',
+            onClick: handleLogout
+        }
+    ];
+
+    const getAvatarContent = () => {
+        if (!user || !user.username) return <UserOutlined />;
+        return user.username.charAt(0).toUpperCase();
+    };
+
     return (
         <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
             <div style={{
@@ -126,25 +153,28 @@ const Home = () => {
             }}>
                 <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                        <h1 style={{ color: '#fff', margin: 0, fontSize: 24 }}>
+                        <h1 style={{ color: '#fff', margin: 0, fontSize: 24, cursor: 'pointer' }} onClick={() => navigate('/')}>
                             <EnvironmentOutlined style={{ marginRight: 8 }} />
                             酒店预订系统
                         </h1>
                         <div>
                             {user ? (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                    <span style={{ color: '#fff' }}>
-                                        <UserOutlined style={{ marginRight: 4 }} />
-                                        {user.username}
-                                    </span>
-                                    <Button 
-                                        type="link" 
-                                        style={{ color: '#fff' }}
-                                        onClick={handleLogout}
-                                    >
-                                        <LogoutOutlined /> 退出
-                                    </Button>
-                                </div>
+                                <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                                        <Avatar 
+                                            style={{ 
+                                                backgroundColor: '#fff',
+                                                color: '#667eea',
+                                                fontWeight: 600,
+                                                cursor: 'pointer'
+                                            }}
+                                            size={36}
+                                        >
+                                            {getAvatarContent()}
+                                        </Avatar>
+                                        <span style={{ color: '#fff' }}>{user.username}</span>
+                                    </div>
+                                </Dropdown>
                             ) : (
                                 <Button type="primary" ghost onClick={() => navigate('/login')}>
                                     登录
