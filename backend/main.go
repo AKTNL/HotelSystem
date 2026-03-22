@@ -22,6 +22,9 @@ func main(){
 
 	config.ConnectDatabase()
 
+	// 初始化数据
+	r.GET("/init", controllers.InitData)
+
 	// 用户模块
 	r.POST("/register", controllers.Register)
 	r.POST("/login", controllers.Login)
@@ -33,9 +36,33 @@ func main(){
 	r.POST("/orders", controllers.CreateOrder)
 	r.PUT("/orders/:id/cancel", controllers.CancelOrder)
 
-	// 管理统计模块
+	// 管理员模块
 	admin := r.Group("/admin")
 	{
+		// 仪表盘
+		admin.GET("/dashboard", controllers.GetDashboardStats)
+		
+		// 用户管理
+		admin.GET("/users", controllers.GetAllUsers)
+		admin.PUT("/users/:id", controllers.UpdateUser)
+		admin.DELETE("/users/:id", controllers.DeleteUser)
+		
+		// 酒店管理
+		admin.POST("/hotels", controllers.CreateHotel)
+		admin.PUT("/hotels/:id", controllers.UpdateHotel)
+		admin.DELETE("/hotels/:id", controllers.DeleteHotel)
+		
+		// 客房管理
+		admin.GET("/rooms", controllers.GetAllRooms)
+		admin.POST("/rooms", controllers.CreateRoom)
+		admin.PUT("/rooms/:id", controllers.UpdateRoom)
+		admin.DELETE("/rooms/:id", controllers.DeleteRoom)
+		
+		// 订单管理
+		admin.GET("/orders", controllers.GetAllOrders)
+		admin.PUT("/orders/:id/status", controllers.UpdateOrderStatus)
+		
+		// 统计
 		admin.GET("/stats/bookings", controllers.GetBookingStats)
 		admin.GET("/stats/guests", controllers.GetGuestAnalysis)
 	}
