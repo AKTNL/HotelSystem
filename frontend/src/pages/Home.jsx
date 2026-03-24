@@ -238,6 +238,7 @@ const Home = () => {
                                 <Card
                                     hoverable
                                     style={{ borderRadius: 12, overflow: 'hidden' }}
+                                    onClick={() => navigate(`/hotel/${hotel.hotel_id}`)}
                                     cover={
                                         <div style={{
                                             height: 180,

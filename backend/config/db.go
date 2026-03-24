@@ -19,4 +19,8 @@ func ConnectDatabase(){
 
 	DB = database
 	DB.AutoMigrate(&models.User{}, &models.Hotel{}, &models.Room{}, &models.Order{}, &models.OrderGuest{})
+	
+	// 删除可能存在的身份证长度约束
+	DB.Exec("ALTER TABLE order_guests DROP CONSTRAINT IF EXISTS check_id_len")
+	DB.Exec("ALTER TABLE users DROP CONSTRAINT IF EXISTS check_id_len")
 }

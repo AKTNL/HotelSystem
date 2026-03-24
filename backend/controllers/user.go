@@ -14,6 +14,8 @@ func Register(c *gin.Context) {
 		Username string `json:"username"`
 		Password string `json:"password"`
 		RealName string `json:"real_name"`
+		Phone    string `json:"phone"`
+		Email    string `json:"email"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误"})
@@ -25,6 +27,8 @@ func Register(c *gin.Context) {
 		Username:     input.Username,
 		PasswordHash: string(hashedPassword),
 		RealName:     input.RealName,
+		Phone:        input.Phone,
+		Email:        input.Email,
 	}
 
 	if err := config.DB.Create(&user).Error; err != nil {
@@ -78,13 +82,32 @@ func UpdateUserProfile(c *gin.Context) {
 
 	var input struct {
 		RealName string `json:"real_name"`
+		Phone    string `json:"phone"`
+		Email    string `json:"email"`
+		IDCard   string `json:"id_card"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误"})
 		return
 	}
 
-	user.RealName = input.RealName
+	if input.RealName != "" {
+		user.RealName = input.RealName
+	}
+	if input.Phone != "" {
+		user.Phone = input.Phone
+	}
+	if input.Email != "" {
+		user.Email = input.Email
+	}
+	if input.IDCard != "" {
+		if len(input.IDCard) != 18 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "身份证号必须为18位"})
+			return
+		}
+		user.IDCard = input.IDCard
+		user.IsVerified = true
+	}
 
 	if err := config.DB.Save(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新失败"})
